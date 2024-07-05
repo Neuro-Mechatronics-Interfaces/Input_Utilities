@@ -277,7 +277,7 @@ int main() {
             char type[10];
             sscanf(analogBuffer, "%9[^,]", type);
 
-            if (strcmp(type, "u") == 0 || strcmp(type, "d") == 0 || strcmp(type, "l") == 0 || strcmp(type, "r") == 0) {
+            if (strcmp(type,"x") == 0 || strcmp(type, "u") == 0 || strcmp(type, "d") == 0 || strcmp(type, "l") == 0 || strcmp(type, "r") == 0) {
                 // Expected format: "<direction>,<dx>,<dy>\n"
                 char direction[2];
                 int dx, dy;
