@@ -138,4 +138,66 @@ writeline(mouse, 'click,right'); % Right mouse click
 pause(1.5);
 writeline(mouse, 'r,250,0'); % Move right 250 pixels to return to start
 ```  
-When you are done sending messages from MATLAB, you can use `clear` to close the `gamepad` and `mouse` connections, which will close the server sockets and stop the server application. If you want to re-connect, you need to manually restart the application. (I may add an option for server persistence in the future, if I remember.)  
+When you are done sending messages from MATLAB, you can use `clear` to close the `gamepad` and `mouse` connections, which will close the server sockets and stop the server application. If you want to re-connect, you need to manually restart the application.  
+
+### Persistent Controller and Mouse Server ###  
+This does the same thing as the other two applications, but it persists the socket on ports 6053 and 6054 after the tcp/ip client socket connections are closed. You can compile it from an `MSYS64` terminal at the root folder of this repository, like this:  
+```bash
+gcc -o controller_input_server.exe src/controller_input_persistent_server.c -lws2_32
+```
+Then, you can run `controller_input_server.exe` by double-clicking it or from the same `MSYS64` terminal like:  
+```bash
+./controller_input_server.exe
+```
+Once you have compiled this executable, you can consider installing/using it automatically by running the installation script (`install_service.bat`); however, you should really read the next section first and take the safety considerations under advisement. Basically, you probably want to really make sure to firewall/restrict this application so that the ports 6053 and 6054 are only accessed via safe/internal/local networks.  
+
+## Windows Service for Controller Input Server
+**Note: this is not working, but you can compile `controller_input_server.exe` and run that from a terminal as required instead.**
+
+### Overview
+The `ControllerInputService` is a Windows service that automatically starts the `controller_input_server.exe` application on system startup. This service ensures that the controller input server is always running, providing continuous input handling for your setup.
+
+### Installation
+
+To install the `ControllerInputService`, follow these steps:
+
+1. **Download and Extract Repository:**
+   Ensure that you have downloaded and extracted the repository containing `install_service.bat` and `controller_input_server.exe` to a desired location on your system.
+
+2. **Run the Installation Script:**
+   Run the `install_service.bat` script with administrative privileges to install the service:
+   - Right-click `install_service.bat` and select "Run as administrator."
+   - The script will automatically detect the path to `controller_input_server.exe`, create the service, and configure Windows Firewall to allow access only from localhost and local networks.
+   
+   The script does the following:
+   - Creates the `ControllerInputService` to run `controller_input_server.exe`.
+   - Configures Windows Firewall to allow incoming connections on ports 6053 and 6054 only from the localhost (`127.0.0.1`) and local networks (`192.168.0.0/16` and `10.0.0.0/8`).
+
+### Uninstallation
+
+To uninstall the `ControllerInputService`, follow these steps:
+
+1. **Run the Uninstallation Script:**
+   Run the `uninstall_service.bat` script with administrative privileges to uninstall the service:
+   - Right-click `uninstall_service.bat` and select "Run as administrator."
+
+   The script does the following:
+   - Stops the `ControllerInputService`.
+   - Deletes the `ControllerInputService`.
+   - Removes the firewall rules associated with the service.
+
+### Safety Considerations
+
+- **Administrative Privileges:**
+  - The installation script requires administrative privileges to create and manage the Windows service. Ensure you trust the source of the script before running it with elevated permissions.
+
+- **Resource Usage:**
+  - Running the service continuously may consume system resources. Monitor the system for any performance issues and adjust the service configuration if necessary.
+
+- **External Connections:**
+  - **Security Risk**: The service listens on network ports, potentially allowing external connections to control the mouse and keyboard. This poses a significant security risk, especially if the service is exposed to external networks.
+  - **Firewall Settings**: By default, the installation script configures Windows Firewall to restrict access to the ports used by the service (`6053` and `6054`) to trusted IP addresses only (localhost and local networks).
+  - **Network Segmentation**: Ensure the service is only accessible within a secure, segmented network to prevent unauthorized access.
+  - **Encryption**: Consider implementing encryption and authentication mechanisms for the data transmitted over the network to prevent interception and unauthorized control.
+
+By following these instructions and considerations, you can ensure that the `controller_input_server.exe` application is always running and ready to handle controller inputs while maintaining a secure environment.
