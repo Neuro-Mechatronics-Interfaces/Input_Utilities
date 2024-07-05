@@ -5,7 +5,7 @@ Simple compilable executables written in `c` for emulating keyboard/mouse inputs
 ## Contents ##
 Each `.c` file should have everything in it that's needed to compile.
 * [Controller Emulator Server](#xbox-controller-emulator-server)
-* [Controller Emulator Server (With Mouse Port)](#xbox-controller-emulator-server-with-mouse)
+* [Controller Emulator Server **(With Mouse Port)**](#xbox-controller-emulator-server-with-mouse)
 * [Key Event Listener (Debugging)](#key-event-listener)
 
 ### XBOX Controller Emulator Server With Mouse ###
@@ -55,30 +55,30 @@ The second `char` should be either `'0'` (key press) or `'1'` (key release).
 ##### Example Usage #####
 Below is some example MATLAB code I've confirmed works to make Megaman move back and forth and charge/discharge his hand cannon in MegaManX running in SNES9x while I run this emulator server in the background:
 ```matlab
-client = tcpclient("127.0.0.1", 6053);
-writeline(client, 'y0'); % Press (and hold) "Y"
+gamepad = tcpclient("127.0.0.1", 6053);
+writeline(gamepad, 'y0'); % Press (and hold) "Y"
 pause(0.020);
-writeline(client, '60'); % Press (and hold) DPAD Right
+writeline(gamepad, '60'); % Press (and hold) DPAD Right
 pause(1.5);
-writeline(client, '61'); % Stop running Right
+writeline(gamepad, '61'); % Stop running Right
 pause(0.020);
-writeline(client, '40'); % Start running Left
+writeline(gamepad, '40'); % Start running Left
 pause(1.5);
-writeline(client, '41'); % Stop running Left
+writeline(gamepad, '41'); % Stop running Left
 pause(0.020);
 % Turn right:
-writeline(client, '61');
+writeline(gamepad, '61');
 pause(0.020);
-writeline(client, '60');
+writeline(gamepad, '60');
 pause(0.020); 
-writeline(client, 'Y1'); % FIRE!!!! (Release "Y")
+writeline(gamepad, 'Y1'); % FIRE!!!! (Release "Y")
 ```
 
 ### XBOX Controller Emulator Server With Mouse ###
 
 [Return](#contents)
 
-This application creates a background local loopback server so you can send principled "messages" to the server over TCP/IP on your local device; the messages are translated by this server so that they look like actual keypresses from an XBOX controller, which should be compatible with most 3rd-party applications that you might want to play. So in a nutshell this is very useful if, for example, you are decoding device streams from EMG or other neural data sources in MATLAB or Python, and you want to handle all math and data processing in those higher-level languages. This allows separation/abstraction of the part where you have to generate the "physical key clicks" etc. so that other applications can see your decoded output.
+This is an extended version of the control emulator from the [previous section](#xbox-controller-emulator-server), which adds in mouse emulation. The mouse message API is described under the **[Analog Input Messages](#analog-input-messages)** section; it supports mouse input to move across an arbitrary screen size using pixel `dx,dy` messages, as well as "left" and "right" button click, hold, and release events and "scrollwheel" "up" and "down" events.  
 
 #### Server Application ####
 To compile the server application, run the following command from an `MSYS64` terminal in the root folder of this repository:
@@ -93,52 +93,7 @@ To run the compiled application, from the same terminal you can simply then run:
 You may receive a security prompt to open a port--this is exposed on local loopback; make sure to allow it.
 
 ##### Message API #####
-The setup is simple. Currently, it's hard-coded to connect on port `6053` for digital inputs and port `6054` for analog (mouse) inputs.
-
-#### Digital Input Messages ####
-1. Create a TCP/IP client socket connection to port `6053` on `localhost` (`127.0.0.1`).
-2. Send `\r\n`-terminated `char` messages to the socket with structure: `<button><0 or 1>`.
-
-The first `char` of the message must be one of the following, indicating the button to press:
-
-| Button | Character |
-| ---    | ---       |
-| `A` | `'a'` or `'A'`|
-| `B` | `'b'` or `'B'`|
-| `X` | `'x'` or `'X'`|
-| `Y` | `'y'` or `'Y'`|
-| `L` | `'l'` or `'L'`|
-| `R` | `'r'` or `'R'`|
-| `DPAD UP`     | `'8'` |
-| `DPAD DOWN`   | `'2'` |
-| `DPAD LEFT`   | `'4'` |
-| `DPAD RIGHT`  | `'6'` |
-
-_(The `DPAD` button `<-->` character mapping is related to the layout of the numbers on a standard keyboard numpad.)_
-
-The second `char` should be either `'0'` (key press) or `'1'` (key release).
-
-##### Example Usage #####
-Below is some example MATLAB code I've confirmed works to make Megaman move back and forth and charge/discharge his hand cannon in MegaManX running in SNES9x while I run this emulator server in the background:
-```matlab
-client = tcpclient("127.0.0.1", 6053);
-writeline(client, 'y0'); % Press (and hold) "Y"
-pause(0.020);
-writeline(client, '60'); % Press (and hold) DPAD Right
-pause(1.5);
-writeline(client, '61'); % Stop running Right
-pause(0.020);
-writeline(client, '40'); % Start running Left
-pause(1.5);
-writeline(client, '41'); % Stop running Left
-pause(0.020);
-% Turn right:
-writeline(client, '61');
-pause(0.020);
-writeline(client, '60');
-pause(0.020); 
-writeline(client, 'Y1'); % FIRE!!!! (Release "Y")
-```
+The setup is simple. Currently, it's hard-coded to connect on port `6053` for digital inputs and port `6054` for analog (mouse) inputs. The API for "Digital" messages is the same as in the [previous section](#digital-input-messages).  
 
 ### Analog Input Messages
 
@@ -154,8 +109,9 @@ writeline(client, 'Y1'); % FIRE!!!! (Release "Y")
   - `direction`: 'up' or 'down'.
 
 #### Example Usage
-Below is some example MATLAB code to simulate analog stick movement, mouse clicks, and mouse wheel scrolls:
+Below is some example MATLAB code to simulate analog stick movement, mouse clicks, and mouse wheel scrolls. Note that you **must** open connections to both sockets before it will recognize the controller:
 ```matlab
+gamepad = tcpclient("127.0.0.1", 6053);
 mouse = tcpclient("127.0.0.1", 6054);
 % Analog movement
 writeline(mouse, 'u,0,-250'); % Move up 250 pixels
@@ -176,17 +132,5 @@ writeline(mouse, 'scroll,up'); % Scroll up
 pause(0.1);
 writeline(mouse, 'scroll,down'); % Scroll down
 pause(0.1);
-
-#### Test Application ####
-To compile an application that you can run right away to confirm if the server is working as intended, run the following from an `MSYS64` terminal in the root folder of this repository:
-```bash
-gcc src/xbox_emulator__simple_test.c -o xbox_emulator__simple_test -lws2_32
-```
-To run
-```bash
-./xbox_emulator__simple_test.exe
-```
-(Or double-click the compiled executable).
-```
-
-This updated README includes instructions for handling analog input messages on port 6054 and provides example usage for sending these messages from MATLAB. The new analog messages allow you to specify direction and movement amounts, simulating analog stick movement on the Xbox controller.
+```  
+When you are done sending messages from MATLAB, you can use `clear` to close the `gamepad` and `mouse` connections, which will close the server sockets and stop the server application. If you want to re-connect, you need to manually restart the application. (I may add an option for server persistence in the future, if I remember.)  
