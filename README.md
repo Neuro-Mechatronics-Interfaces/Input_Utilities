@@ -147,7 +147,7 @@ gcc -o controller_input_server.exe src/controller_input_persistent_server.c -lws
 ```
 Then, you can run `controller_input_server.exe` by double-clicking it or from the same `MSYS64` terminal like:  
 ```bash
-./controller_input_server.exe
+./controller_input_server.exe -console
 ```
 Once you have compiled this executable, you can consider installing/using it automatically by running the installation script (`install_service.bat`); however, you should really read the next section first and take the safety considerations under advisement. Basically, you probably want to really make sure to firewall/restrict this application so that the ports 6053 and 6054 are only accessed via safe/internal/local networks.  
 

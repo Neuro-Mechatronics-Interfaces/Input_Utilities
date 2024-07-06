@@ -420,6 +420,9 @@ void WINAPI serviceMain(DWORD argc, LPSTR *argv) {
         return;
     }
 
+    // Set the service status to running
+    setServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
+
     // Run the server
     runServer();
 
