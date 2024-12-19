@@ -1,6 +1,7 @@
 # Input Utilities #
 
-Simple compilable executables written in `c` for emulating keyboard/mouse inputs (Windows 11).
+Simple compilable executables written in `c` for emulating keyboard/mouse inputs (Windows 11).  
+**Note that the "XBOX" controller emulates keyboard keystrokes.** You can test it at https://reaction-task.nml.wtf/debug/keypad (it will not work on https://reaction-task.nml.wtf/debug/gamepad).
 
 ## Contents ##
 Each `.c` file should have everything in it that's needed to compile.
